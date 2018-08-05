@@ -1,0 +1,7 @@
+﻿  ChatServer.cpp
+  Unknown compiler version - please run the configure tests and report the results
+  Please define _WIN32_WINNT or _WIN32_WINDOWS appropriately. For example:
+  - add -D_WIN32_WINNT=0x0501 to the compiler command line; or
+  - add _WIN32_WINNT=0x0501 to your project's Preprocessor Definitions.
+  Assuming _WIN32_WINNT=0x0501 (i.e. Windows XP target).
+  Messaging_App_Server.vcxproj -> c:\users\bramiche\source\repos\Messaging_App_Server\Debug\Messaging_App_Server.exe
