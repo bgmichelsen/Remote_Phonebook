@@ -20,6 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChatServer.cpp" />
+    <ClCompile Include="contacts.cpp" />
+    <ClCompile Include="directory.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="contacts.h" />
+    <ClInclude Include="directory.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
