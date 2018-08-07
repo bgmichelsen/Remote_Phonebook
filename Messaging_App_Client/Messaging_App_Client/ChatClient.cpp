@@ -10,13 +10,30 @@
 #include <boost/array.hpp>
 
 int main() {
-	const char* CHAT_PORT = "50013";
-	std::string inputIP;
+	// Local variables
+	const char* CHAT_PORT = "50013"; // Port for app communication
+	std::string inputIP; // Input for the server's IP address
+
+	// Opening screen
+	std::cout << "\t\tAirwave Phonebook: The remote phonebook\n";
+	std::cout << "\nWelcome to the Airwave Phonebook, your digital remote phone directory. This application ";
+	std::cout << "allows you to remotely store and manage your contacts, whether they are business or personal.\n";
+	std::cout << "To use this application, you first need to connect to an external server running the directory ";
+	std::cout << "management application. After establishing a connection, you can then use the app to add contacts, ";
+	std::cout << "search for information about a particular contact, or even sort the phone directory.\n";
+	std::cout << "The phonebook includes several aspects of a contact. For a personal contact, it stores the ";
+	std::cout << "name of the contact, the phonenumber of the contact, and a nickname for the contact. ";
+	std::cout << "For a business contact, it stores the contact\'s name, number, and the business they work at.\n\n";
+
+	system("pause");
+	system("cls");
 
 	try {
+		// Get the server's IP address of hostname from the user
 		std::cout << "Please enter a Server Address: ";
 		std::getline(std::cin, inputIP);
 
+		// Setup a network connection to the server
 		boost::asio::io_service ioservice;
 		boost::asio::ip::tcp::resolver resolver(ioservice);
 		boost::asio::ip::tcp::resolver::query query(inputIP, CHAT_PORT);
@@ -34,10 +51,12 @@ int main() {
 		if (error)
 			throw boost::system::system_error(error);
 
-		std::cout << "\nConnection to server successful...\n";
+		std::cout << "\nConnection to server successful...\n\n";
+		system("pause");
+		system("cls");
 
 		for (;;) {
-			boost::array<char, 40> buf;
+			boost::array<char, 4096> buf;
 			size_t len = socket.read_some(boost::asio::buffer(buf), error);
 
 			if (error == boost::asio::error::eof)
@@ -46,11 +65,12 @@ int main() {
 				throw boost::system::system_error(error);
 
 			std::cout.write(buf.data(), len);
-			std::cout << "\nDone\n";
 
 			std::string message;
 			std::getline(std::cin, message);
 			boost::asio::write(socket, boost::asio::buffer(message));
+			system("pause");
+			system("cls");
 		}
 	}
 	catch (std::exception& e) {
