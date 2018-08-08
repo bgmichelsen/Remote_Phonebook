@@ -14,7 +14,7 @@ int main() {
 	const char* CHAT_PORT = "50013"; // Port for app communication
 	std::string inputIP; // Input for the server's IP address
 
-	// Opening screen
+						 // Opening screen
 	std::cout << "\t\tAirwave Phonebook: The remote phonebook\n";
 	std::cout << "\nWelcome to the Airwave Phonebook, your digital remote phone directory. This application ";
 	std::cout << "allows you to remotely store and manage your contacts, whether they are business or personal.\n";
