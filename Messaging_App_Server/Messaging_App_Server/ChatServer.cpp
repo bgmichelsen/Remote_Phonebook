@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include "directory.h"
@@ -17,14 +18,14 @@ namespace {
 
 // Function prototypes
 std::string readRemoteInput(boost::asio::ip::tcp::socket& connection, boost::system::error_code& error); // Function for reading user input from a remote computer
-//void viewPhoneBook(Directory* list);
+void viewPhoneBook(boost::asio::ip::tcp::socket& connection, boost::system::error_code& error, Directory* list); // Function to view the phonebook
 
 int main() {
 	// Local variables
 	const int CHAT_PORT = 50013; // Port for app communication
 	std::string clientMsg; // Variable for storing messages from the client
 	Directory phonebook; // Phonebook for storing contact information
-	
+
 	try {
 		// Setup a connection to a client
 		boost::asio::io_service ioservice;
@@ -130,7 +131,10 @@ int main() {
 				}
 			}
 			else if (clientMsg == "4") {
-				boost::asio::write(socket, boost::asio::buffer("\nPrinting phonebook\n"));
+				if (phonebook.is_empty())
+					boost::asio::write(socket, boost::asio::buffer("\nThe phonebook is empty.\n"));
+				else
+					viewPhoneBook(socket, error, &phonebook);
 			}
 			else if (clientMsg == "5") {
 				socket.close();
@@ -172,4 +176,42 @@ std::string readRemoteInput(boost::asio::ip::tcp::socket& connection, boost::sys
 		returnMsg += message[i];
 
 	return returnMsg;
+}
+
+void viewPhoneBook(boost::asio::ip::tcp::socket& connection, boost::system::error_code& error, Directory* list) {
+	std::string userChoice;
+	boost::asio::write(connection, boost::asio::buffer("What type of contact list would you like to view (business/personal): "));
+	userChoice = readRemoteInput(connection, error);
+
+	if (userChoice == "business" || userChoice == "Business") {
+		std::vector<Business*>* displayList = list->return_business_contact_book();
+
+		for (unsigned int i = 0; i < displayList->size(); i++) {
+			Business* contactElement = displayList->at(i);
+			boost::asio::write(connection, boost::asio::buffer("\nContact Name:\n"));
+			boost::asio::write(connection, boost::asio::buffer(contactElement->get_name()));
+			boost::asio::write(connection, boost::asio::buffer("\nContact Number:\n"));
+			boost::asio::write(connection, boost::asio::buffer(contactElement->get_phone()));
+			boost::asio::write(connection, boost::asio::buffer("\nContact Workplace:\n"));
+			boost::asio::write(connection, boost::asio::buffer(contactElement->get_company()));
+			boost::asio::write(connection, boost::asio::buffer("\n"));
+		}
+	}
+	else if (userChoice == "personal" || userChoice == "Personal") {
+		std::vector<Personal*>* displayList = list->return_personal_contact_book();
+
+		for (unsigned int i = 0; i < displayList->size(); i++) {
+			Personal* contactElement = displayList->at(i);
+			boost::asio::write(connection, boost::asio::buffer("\nContact Name:\n"));
+			boost::asio::write(connection, boost::asio::buffer(contactElement->get_name()));
+			boost::asio::write(connection, boost::asio::buffer("\nContact Number:\n"));
+			boost::asio::write(connection, boost::asio::buffer(contactElement->get_phone()));
+			boost::asio::write(connection, boost::asio::buffer("\nContact Workplace:\n"));
+			boost::asio::write(connection, boost::asio::buffer(contactElement->get_nickname()));
+			boost::asio::write(connection, boost::asio::buffer("\n"));
+		}
+	}
+	else {
+		boost::asio::write(connection, boost::asio::buffer("\nThat is not a valid option.\n"));
+	}
 }
