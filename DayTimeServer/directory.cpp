@@ -8,89 +8,39 @@
 #include "directory.h"
 #include "contacts.h"
 
-void Directory::add_contact() {
-	
-	do {
-		// prompt user 
-		std::cout << "What type of contact would you like to add? " << std::endl;
-		std::cout << "Personal contact - 1" << std::endl;
-		std::cout << "Business contact - 2" << std::endl;
-		std::cout << "Go back - 3" << std::endl;
-		int choice;
-		std::cin >> choice;
+// Function takes in users contact choice with contact details 
+void Directory::add_contact(std::string choice, std::string name, std::string number, std::string additionalInfo) {
+	if (choice == "business" || choice == "Business") {
+		
+		// create a new object
+		Business* new_contact = new Business;
+  
+		// store contact details 
+		new_contact->set_name(name);
+		new_contact->set_phone(number);
+		new_contact->set_company(additionalInfo);
 
-		if (choice == 1) {
-			// add personal contact
-			Personal* new_contact = new Personal;
-			std::string user_input;
+		// push in vector
+		business_contact_book.push_back(new_contact);
+	}
+	else if (choice == "personal" || choice == "Personal") {
 
-			// add name
-			std::cout << "Give contact's first and/or last name: " << std::endl;
-			std::cin.ignore();
-			std::getline(std::cin, user_input);
-			new_contact->set_name(user_input);
+		Personal* new_contact = new Personal;
 
-			// add phone number
-			std::cout << "Give contact's phone number: " << std::endl;
-			std::getline(std::cin, user_input);
-			new_contact->set_phone(user_input);
+		new_contact->set_name(name);
+		new_contact->set_phone(number);
+		new_contact->set_nickname(additionalInfo);
 
-			// add nickname
-			std::cout << "Give contact's phone nickname: " << std::endl;
-			std::getline(std::cin, user_input);
-			new_contact->set_nickname(user_input);
-
-			// add to contact book
-			personal_contact_book.push_back(new_contact);
-			
-			// prompt user
-			std::cout << "Added the following contact to Contact Book: " << std::endl;
-			new_contact->print_contact_info();
-			system("pause");
-		}
-		else if (choice == 2) {
-			// add business contact
-			Business* new_contact = new Business;
-			std::string user_input;
-
-			// add name
-			std::cout << "Give contact's first and/or last name: " << std::endl;
-			std::cin.ignore();
-			std::getline(std::cin, user_input);
-			new_contact->set_name(user_input);
-
-			// add phone number
-			std::cout << "Give contact's phone number: " << std::endl;
-			std::getline(std::cin, user_input);
-			new_contact->set_phone(user_input);
-
-			// add company
-			std::cout << "Give contact's company: " << std::endl;
-			std::getline(std::cin, user_input);
-			new_contact->set_company(user_input);
-
-			// add to contact book
-			business_contact_book.push_back(new_contact);
-
-			// prompt user
-			std::cout << "Added the following contact to Contact Book: " << std::endl;
-			new_contact->print_contact_info();
-			system("pause");
-		}
-		else if (choice == 3) {
-			std::cout << "Back to menu..." << std::endl;
-			break; // exit loop
-		}
-		else {
-			std::cout << "Invalid input - please go again..." << std::endl;
-		}
-	} while (true);
+		personal_contact_book.push_back(new_contact);
+	}
 }
 
+// Function takes in an input from user to search for a personal contact
 Personal* Directory::search_for_personal_contact(std::string input) {
 	if (personal_contact_book.empty())
 		return  nullptr;
 	else {
+		// if contact book is not empty, compare input to contact detials
 		for (unsigned int i = 0; i < personal_contact_book.size(); i++) {
 			if (personal_contact_book[i]->get_name() == input)
 				return personal_contact_book[i];
@@ -99,10 +49,12 @@ Personal* Directory::search_for_personal_contact(std::string input) {
 			else if (personal_contact_book[i]->get_nickname() == input)
 				return personal_contact_book[i];
 		}
+		// if reches here, contact was not found
 		return nullptr;
 	}
 }
 
+// Function takes in an input from user to search for a business contact
 Business* Directory::search_for_business_contact(std::string input) {
 	if (business_contact_book.empty())
 		return  nullptr;
@@ -121,11 +73,68 @@ Business* Directory::search_for_business_contact(std::string input) {
 
 
 void Directory::personal_sort_by_name() {
+	// Variable for storing temporary contacts
+	Personal* temp = nullptr;
 	if (personal_contact_book.empty())
 		std::cout << "Personal Book is empty!" << std::endl;
 	else {
+		// Sort the string in alphebatical order
 		for (unsigned int i = 0; i < personal_contact_book.size(); i++) {
-			personal_contact_book[i]->get_name();
+			if (i < (personal_contact_book.size() - 1)) {
+				std::string contact1 = personal_contact_book[i]->get_name();
+				std::string contact2 = personal_contact_book[(i + 1)]->get_name();
+
+				if (contact1 > contact2) {
+					temp = personal_contact_book[(i + 1)];
+					personal_contact_book[(i + 1)] = personal_contact_book[i];
+					personal_contact_book[i] = temp;
+				}
+			}
 		}
 	}
+}
+
+void Directory::business_sort_by_name() {
+	// Variable for storing temporary contacts
+	Business* temp = nullptr;
+	if (business_contact_book.empty())
+		std::cout << "Personal Book is empty!" << std::endl;
+	else {
+		// Sort the string in alphebatical order
+		for (unsigned int i = 0; i < business_contact_book.size(); i++) {
+			if (i < (business_contact_book.size() - 1)) {
+				std::string contact1 = business_contact_book[i]->get_name();
+				std::string contact2 = business_contact_book[(i + 1)]->get_name();
+
+				if (contact1 > contact2) {
+					temp = business_contact_book[(i + 1)];
+					business_contact_book[(i + 1)] = business_contact_book[i];
+					business_contact_book[i] = temp;
+				}
+			}
+		}
+	}
+}
+
+void Directory::sort_phonebook_by_name() {
+	// Call the sort methods
+	if (!(business_contact_book.empty()))
+		business_sort_by_name();
+	if (!(personal_contact_book.empty()))
+		personal_sort_by_name();
+}
+
+// Function returns personal contact book in vector for display
+std::vector<Personal*>* Directory::return_perosnal_contact_book() {
+	return &(personal_contact_book);
+}
+
+// Function returns business contact book in vector for display
+std::vector<Business*>* Directory::return_business_contact_book() {
+	return &(business_contact_book);
+}
+
+// 
+bool Directory::is_empty() {
+	return (business_contact_book.empty() && personal_contact_book.empty());
 }

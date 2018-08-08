@@ -1,82 +1,175 @@
-#define _CRT_SECURE_NO_WARNINGS
-#include <ctime>
+// This is the main file for the client-side of our chat application. It has the functionality to receive 
+// commands from the client application to add contacts to a directory or display contact information. 
+//
+// Authors: Brandon Michelsen & William Bryant
+
 #include <iostream>
 #include <string>
-#include <algorithm>
-#include <vector>
 #include <boost/asio.hpp>
-#include "contacts.h"
+#include <boost/array.hpp>
 #include "directory.h"
+#include "contacts.h"
 
+namespace {
+	// Create a variable for the main menu of the program
+	const std::string MENU = "\t\tSERVER MESSAGE\n\nThe following is the menu for the Airwave Phonebook application. Enter these values to perform the associated actions:\n\t1) Enter a new contact\n\t2) Search for a particular contact\n\t3) Sort the contact list\n\t4) View the phonebook\n\t5) Close the connection\n\n";
+}
 
+// Function prototypes
+std::string readRemoteInput(boost::asio::ip::tcp::socket& connection, boost::system::error_code& error); // Function for reading user input from a remote computer
+																										 //void viewPhoneBook(Directory* list);
 
 int main() {
-	std::cout << "testing program" << std::endl;
-	Directory access;
-	access.add_contact();
-	system("pause");
+	// Local variables
+	const int CHAT_PORT = 50013; // Port for app communication
+	std::string clientMsg; // Variable for storing messages from the client
+	Directory phonebook; // Phonebook for storing contact information
 
-	// test search for personal contact
-	std::cout << "please in search " << std::endl;
-	std::string usrInput;
-	std::cin.ignore();
-	std::getline(std::cin, usrInput); // ask for input
-	Personal* Pcontact = access.search_for_personal_contact(usrInput);
-	if (Pcontact == nullptr)
-		std::cout << "\nContact not found\n";
-	else 
-		Pcontact->print_contact_info();
+	try {
+		// Setup a connection to a client
+		boost::asio::io_service ioservice;
+		boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), CHAT_PORT);
+		boost::asio::ip::tcp::acceptor acceptor(ioservice, endpoint);
+		boost::asio::ip::tcp::socket socket(ioservice);
 
-	// test search for business contact
-	std::cout << "please in search " << std::endl;
-	std::getline(std::cin, usrInput); // ask for input
-	Business* Bcontact = access.search_for_business_contact(usrInput);
-	if (Bcontact == nullptr)
-		std::cout << "\nContact not found\n";
-	else
-		Bcontact->print_contact_info();
+		std::cout << "\nServer is ready...\n";
 
-	system("pause");
-	return 0;
-}
+		boost::system::error_code error = boost::asio::error::host_not_found;
 
+		acceptor.accept(socket);
 
-/*
-using boost::asio::ip::tcp;
+		for (;;) {
+			// Print out the menu and the user to enter something
+			boost::asio::write(socket, boost::asio::buffer("\n"));
+			boost::asio::write(socket, boost::asio::buffer(MENU));
+			boost::asio::write(socket, boost::asio::buffer("Please enter a value from the menu:\n"));
 
-// function that creates a tring to be sent back to the client
-std::string make_daytime_string()
-{
-	using namespace std; // for time_t, time and ctime
-	time_t now = time(0); // store system time value 0
-	return ctime(&now);
-}
-int main()
-{
-	try
-	{
-		boost::asio::io_service io_service;
-		// this object is created to listen for new connections
-		tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 13));
+			// Read the user's input
+			clientMsg = readRemoteInput(socket, error);
 
-		for (;;)
-		{
-			// this socket represents the connection to the client
-			tcp::socket socket(io_service);
-			// wait for connection
-			acceptor.accept(socket);
+			// Check what the user had inputted
+			if (clientMsg == "1") {
+				std::string contactType;
+				std::string contactName;
+				std::string contactNumber;
+				std::string contactInfo;
 
-			// client connects to our service. determine current time 
-			// and tranfer info to client 
-			std::string message = make_daytime_string();
+				boost::asio::write(socket, boost::asio::buffer("\nPlease enter what type of contact you would like to add (business/personal):\n"));
+				contactType = readRemoteInput(socket, error);
 
-			boost::system::error_code ignored_error;
-			boost::asio::write(socket, boost::asio::buffer(message), ignored_error);
+				boost::asio::write(socket, boost::asio::buffer("\nPlease enter the name of the contact:\n"));
+				contactName = readRemoteInput(socket, error);
+
+				boost::asio::write(socket, boost::asio::buffer("\nPlease enter the contact\'s number:\n"));
+				contactNumber = readRemoteInput(socket, error);
+
+				boost::asio::write(socket, boost::asio::buffer("\nPlease enter additional information (nickname for personal contact, company name for business):\n"));
+				contactInfo = readRemoteInput(socket, error);
+
+				if ((contactType == "business" || contactType == "Business") || (contactType == "personal" || contactType == "Personal"))
+					phonebook.add_contact(contactType, contactName, contactNumber, contactInfo);
+				else
+					boost::asio::write(socket, boost::asio::buffer("\nThat is not a correct contact type.\n"));
+			}
+			else if (clientMsg == "2") {
+				std::string contactType;
+				std::string searchTerm;
+
+				boost::asio::write(socket, boost::asio::buffer("\nPlease enter what type of contact you would like to search for (business/personal):\n"));
+				contactType = readRemoteInput(socket, error);
+
+				boost::asio::write(socket, boost::asio::buffer("\nPlease enter a search term (e.g. name, phone number, or nickname/company):\n"));
+				searchTerm = readRemoteInput(socket, error);
+
+				if (contactType == "business" || contactType == "Business") {
+					Business* foundContact;
+
+					foundContact = phonebook.search_for_business_contact(searchTerm);
+
+					if (foundContact == nullptr) {
+						boost::asio::write(socket, boost::asio::buffer("\nContact not found.\n"));
+					}
+					else {
+						boost::asio::write(socket, boost::asio::buffer("\nContact Name:\n"));
+						boost::asio::write(socket, boost::asio::buffer(foundContact->get_name()));
+						boost::asio::write(socket, boost::asio::buffer("\nContact number:\n"));
+						boost::asio::write(socket, boost::asio::buffer(foundContact->get_phone()));
+						boost::asio::write(socket, boost::asio::buffer("\nContact company:\n"));
+						boost::asio::write(socket, boost::asio::buffer(foundContact->get_company()));
+					}
+				}
+				else if (contactType == "personal" || contactType == "Personal") {
+					Personal* foundContact;
+
+					foundContact = phonebook.search_for_personal_contact(searchTerm);
+
+					if (foundContact == nullptr) {
+						boost::asio::write(socket, boost::asio::buffer("\nContact not found.\n"));
+					}
+					else {
+						boost::asio::write(socket, boost::asio::buffer("\nContact Name:\n"));
+						boost::asio::write(socket, boost::asio::buffer(foundContact->get_name()));
+						boost::asio::write(socket, boost::asio::buffer("\nContact number:\n"));
+						boost::asio::write(socket, boost::asio::buffer(foundContact->get_phone()));
+						boost::asio::write(socket, boost::asio::buffer("\nContact company:\n"));
+						boost::asio::write(socket, boost::asio::buffer(foundContact->get_nickname()));
+					}
+				}
+				else {
+					boost::asio::write(socket, boost::asio::buffer("\nThat is not the correct type of contact.\n"));
+				}
+			}
+			else if (clientMsg == "3") {
+				if (phonebook.is_empty()) {
+					boost::asio::write(socket, boost::asio::buffer("\nCannot sort phonebook. Phonebook is empty.\n"));
+				}
+				else {
+					boost::asio::write(socket, boost::asio::buffer("\nSorting contacts...\n"));
+					phonebook.sort_phonebook_by_name();
+					boost::asio::write(socket, boost::asio::buffer("\nDone...\n"));
+				}
+			}
+			else if (clientMsg == "4") {
+				boost::asio::write(socket, boost::asio::buffer("\nPrinting phonebook\n"));
+			}
+			else if (clientMsg == "5") {
+				socket.close();
+				break;
+			}
+			else {
+				boost::asio::write(socket, boost::asio::buffer("\nThat is not a valid command\n"));
+			}
 		}
 	}
-	catch (std::exception& e)
-	{
-		std::cerr << e.what() << std::endl;
+	catch (std::exception& e) {
+		std::cerr << "\nException: " << e.what() << std::endl;
 	}
+
+	std::cout << "\nServer closing\n";
+	system("pause");
 	return 0;
-}*/
+}
+
+std::string readRemoteInput(boost::asio::ip::tcp::socket& connection, boost::system::error_code& error) {
+	boost::array<char, 40> message;
+	std::string returnMsg;
+	size_t length;
+
+	for (;;) {
+		length = connection.read_some(boost::asio::buffer(message), error);
+
+		if (error == boost::asio::error::eof)
+			break;
+		else if (error)
+			throw boost::system::system_error(error);
+
+		std::cout << "\nMessage from client: ";
+		std::cout.write(message.data(), length);
+		break;
+	}
+
+	for (unsigned int i = 0; i < length; i++)
+		returnMsg += message[i];
+
+	return returnMsg;
+}

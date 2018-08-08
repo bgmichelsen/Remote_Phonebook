@@ -14,6 +14,7 @@ Contact::Contact(std::string N, std::string P) {
 	phone_number = P;
 }
 
+// These are setters and getters
 void Contact::set_name(std::string N) { full_name = N; }
 void Contact::set_phone(std::string P) { phone_number = P; }
 
@@ -53,6 +54,3 @@ void Business::print_contact_info() {
 	Contact::print_contact_info();
 	std::cout << "Contact's company is " << get_company() << std::endl;
 }
-
-
-

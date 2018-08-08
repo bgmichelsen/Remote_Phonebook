@@ -57,24 +57,11 @@ public:
 	Business();
 	// takes in company 'C' with N and P
 	Business(std::string C, std::string N, std::string P);
-	
+
 	void set_company(std::string);
 	// void store_company(std::string);
 	std::string get_company();
 	void print_contact_info();
 };
 
-#endif CONTACTS_H
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif // CONTACTS_H
