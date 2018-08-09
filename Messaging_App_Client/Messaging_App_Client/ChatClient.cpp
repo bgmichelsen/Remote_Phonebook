@@ -69,12 +69,12 @@ int main() {
 			std::string message;
 			std::getline(std::cin, message);
 
-			if (message.empty()) {
+			while (message.empty()) {
 				std::cout << "\nYou cannot enter an empty value.\n";
+				std::getline(std::cin, message);
 			}
-			else {
-				boost::asio::write(socket, boost::asio::buffer(message));
-			}
+
+			boost::asio::write(socket, boost::asio::buffer(message));
 			system("pause");
 			system("cls");
 		}
