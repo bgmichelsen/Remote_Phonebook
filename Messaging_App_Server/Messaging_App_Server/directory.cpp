@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <vector>
-#include <set> // for sorting 
-#include <algorithm> // for std::find
+#include <set>
+#include <algorithm>
 #include "directory.h"
 #include "contacts.h"
 
@@ -42,11 +42,16 @@ Personal* Directory::search_for_personal_contact(std::string input) {
 	else {
 		// if contact book is not empty, compare input to contact detials
 		for (unsigned int i = 0; i < personal_contact_book.size(); i++) {
-			if (personal_contact_book[i]->get_name() == input)
-				return personal_contact_book[i];
-			else if (personal_contact_book[i]->get_phone() == input)
-				return personal_contact_book[i];
-			else if (personal_contact_book[i]->get_nickname() == input)
+			std::string name = personal_contact_book[i]->get_name();
+			std::string number = personal_contact_book[i]->get_phone();
+			std::string nickname = personal_contact_book[i]->get_nickname();
+
+			std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+			std::transform(number.begin(), number.end(), number.begin(), ::toupper);
+			std::transform(nickname.begin(), nickname.end(), nickname.begin(), ::toupper);
+			std::transform(input.begin(), input.end(), input.begin(), ::toupper);
+
+			if ((name == input) || (number == input) || (nickname == input))
 				return personal_contact_book[i];
 		}
 		// if reches here, contact was not found
@@ -60,11 +65,16 @@ Business* Directory::search_for_business_contact(std::string input) {
 		return  nullptr;
 	else {
 		for (unsigned int i = 0; i < business_contact_book.size(); i++) {
-			if (business_contact_book[i]->get_name() == input)
-				return business_contact_book[i];
-			else if (business_contact_book[i]->get_phone() == input)
-				return business_contact_book[i];
-			else if (business_contact_book[i]->get_company() == input)
+			std::string name = business_contact_book[i]->get_name();
+			std::string number = business_contact_book[i]->get_phone();
+			std::string company = business_contact_book[i]->get_company();
+
+			std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+			std::transform(number.begin(), number.end(), number.begin(), ::toupper);
+			std::transform(company.begin(), company.end(), company.begin(), ::toupper);
+			std::transform(input.begin(), input.end(), input.begin(), ::toupper);
+
+			if ((name == input) || (number == input) || (company == input))
 				return business_contact_book[i];
 		}
 		return nullptr;

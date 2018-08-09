@@ -58,19 +58,20 @@ int main() {
 				boost::asio::write(socket, boost::asio::buffer("\nPlease enter what type of contact you would like to add (business/personal):\n"));
 				contactType = readRemoteInput(socket, error);
 
-				boost::asio::write(socket, boost::asio::buffer("\nPlease enter the name of the contact:\n"));
-				contactName = readRemoteInput(socket, error);
+				if ((contactType == "business" || contactType == "Business") || (contactType == "personal" || contactType == "Personal")) {
+					boost::asio::write(socket, boost::asio::buffer("\nPlease enter the name of the contact:\n"));
+					contactName = readRemoteInput(socket, error);
 
-				boost::asio::write(socket, boost::asio::buffer("\nPlease enter the contact\'s number:\n"));
-				contactNumber = readRemoteInput(socket, error);
+					boost::asio::write(socket, boost::asio::buffer("\nPlease enter the contact\'s number:\n"));
+					contactNumber = readRemoteInput(socket, error);
 
-				boost::asio::write(socket, boost::asio::buffer("\nPlease enter additional information (nickname for personal contact, company name for business):\n"));
-				contactInfo = readRemoteInput(socket, error);
+					boost::asio::write(socket, boost::asio::buffer("\nPlease enter additional information (nickname for personal contact, company name for business):\n"));
+					contactInfo = readRemoteInput(socket, error);
 
-				if ((contactType == "business" || contactType == "Business") || (contactType == "personal" || contactType == "Personal"))
 					phonebook.add_contact(contactType, contactName, contactNumber, contactInfo);
+				}
 				else
-					boost::asio::write(socket, boost::asio::buffer("\nThat is not a correct contact type.\n"));
+					boost::asio::write(socket, boost::asio::buffer("\nThat is not a valid contact type.\n"));
 			}
 			else if (clientMsg == "2") {
 				std::string contactType;
@@ -79,10 +80,10 @@ int main() {
 				boost::asio::write(socket, boost::asio::buffer("\nPlease enter what type of contact you would like to search for (business/personal):\n"));
 				contactType = readRemoteInput(socket, error);
 
-				boost::asio::write(socket, boost::asio::buffer("\nPlease enter a search term (e.g. name, phone number, or nickname/company):\n"));
-				searchTerm = readRemoteInput(socket, error);
-
 				if (contactType == "business" || contactType == "Business") {
+					boost::asio::write(socket, boost::asio::buffer("\nPlease enter a search term (e.g. name, phone number, or nickname/company):\n"));
+					searchTerm = readRemoteInput(socket, error);
+
 					Business* foundContact;
 
 					foundContact = phonebook.search_for_business_contact(searchTerm);
@@ -100,6 +101,9 @@ int main() {
 					}
 				}
 				else if (contactType == "personal" || contactType == "Personal") {
+					boost::asio::write(socket, boost::asio::buffer("\nPlease enter a search term (e.g. name, phone number, or nickname/company):\n"));
+					searchTerm = readRemoteInput(socket, error);
+
 					Personal* foundContact;
 
 					foundContact = phonebook.search_for_personal_contact(searchTerm);
@@ -117,7 +121,7 @@ int main() {
 					}
 				}
 				else {
-					boost::asio::write(socket, boost::asio::buffer("\nThat is not the correct type of contact.\n"));
+					boost::asio::write(socket, boost::asio::buffer("\nThat is not a valid contact type.\n"));
 				}
 			}
 			else if (clientMsg == "3") {

@@ -1,4 +1,4 @@
 ﻿  directory.cpp
-c:\users\bramiche\source\repos\messaging_app_server\messaging_app_server\directory.cpp(82): warning C4018: '<': signed/unsigned mismatch
-c:\users\bramiche\source\repos\messaging_app_server\messaging_app_server\directory.cpp(112): warning C4018: '<': signed/unsigned mismatch
+c:\users\bramiche\source\repos\messaging_app_server\messaging_app_server\directory.cpp(98): warning C4018: '<': signed/unsigned mismatch
+c:\users\bramiche\source\repos\messaging_app_server\messaging_app_server\directory.cpp(125): warning C4018: '<': signed/unsigned mismatch
   Messaging_App_Server.vcxproj -> C:\Users\bramiche\source\repos\Messaging_App_Server\Debug\Messaging_App_Server.exe
