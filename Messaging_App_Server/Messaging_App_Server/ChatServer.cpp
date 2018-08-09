@@ -143,6 +143,12 @@ int main() {
 			else {
 				boost::asio::write(socket, boost::asio::buffer("\nThat is not a valid command\n"));
 			}
+			boost::asio::write(socket, boost::asio::buffer("\nPlease type CONTINUE to continue:\n"));
+			clientMsg = readRemoteInput(socket, error);
+
+			if (clientMsg == "CONTINUE") {
+				continue;
+			}
 		}
 	}
 	catch (std::exception& e) {

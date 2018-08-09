@@ -15,7 +15,6 @@ private:
 	// create vectors with pointers to the Personal and Business objects
 	std::vector<Personal*> personal_contact_book;
 	std::vector<Business*> business_contact_book;
-
 public:
 	// create functions for using the directory. Functionality described in directory.cpp
 	void add_contact(std::string, std::string, std::string, std::string);

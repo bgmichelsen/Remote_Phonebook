@@ -76,18 +76,23 @@ void Directory::personal_sort_by_name() {
 	// Variable for storing temporary contacts
 	Personal* temp = nullptr;
 	if (personal_contact_book.empty())
-		std::cout << "Personal Book is empty!" << std::endl;
+		std::cout << "Personal Book is empty!";
 	else {
 		// Sort the string in alphebatical order
-		for (int j = 0; j < (personal_contact_book.size() - 1); j++) {
-			for (unsigned int i = 0; i < personal_contact_book.size(); i++) {
-				if (i < (personal_contact_book.size() - 1)) {
-					std::string contact1 = personal_contact_book[i]->get_name();
-					std::string contact2 = personal_contact_book[(i + 1)]->get_name();
+		bool swapped = true;
+		int j = 0;
 
-					temp = personal_contact_book[(i + 1)];
-					personal_contact_book[(i + 1)] = personal_contact_book[i];
-					personal_contact_book[i] = temp;
+		while (swapped) {
+			swapped = false;
+			j++;
+			for (int i = 0; i < (personal_contact_book.size() - j); i++) {
+				std::string contact1 = personal_contact_book[i]->get_name();
+				std::string contact2 = personal_contact_book[i + 1]->get_name();
+				if (contact1 > contact2) {
+					temp = personal_contact_book[i];
+					personal_contact_book[i] = personal_contact_book[i + 1];
+					personal_contact_book[i + 1] = temp;
+					swapped = true;
 				}
 			}
 		}
@@ -98,18 +103,23 @@ void Directory::business_sort_by_name() {
 	// Variable for storing temporary contacts
 	Business* temp = nullptr;
 	if (business_contact_book.empty())
-		std::cout << "Personal Book is empty!" << std::endl;
+		std::cout << "\nBusiness Book is empty!\n";
 	else {
 		// Sort the string in alphebatical order
-		for (int j = 0; j < (business_contact_book.size() - 1); j++) {
-			for (unsigned int i = 0; i < business_contact_book.size(); i++) {
-				if (i < (business_contact_book.size() - 1)) {
-					std::string contact1 = business_contact_book[i]->get_name();
-					std::string contact2 = business_contact_book[(i + 1)]->get_name();
-
-					temp = business_contact_book[(i + 1)];
-					business_contact_book[(i + 1)] = business_contact_book[i];
-					business_contact_book[i] = temp;
+		bool swapped = true;
+		int j = 0;
+		
+		while (swapped) {
+			swapped = false;
+			j++;
+			for (int i = 0; i < (business_contact_book.size() - j); i++) {
+				std::string contact1 = business_contact_book[i]->get_name();
+				std::string contact2 = business_contact_book[i + 1]->get_name();
+				if (contact1 > contact2) {
+					temp = business_contact_book[i];
+					business_contact_book[i] = business_contact_book[i + 1];
+					business_contact_book[i + 1] = temp;
+					swapped = true;
 				}
 			}
 		}
