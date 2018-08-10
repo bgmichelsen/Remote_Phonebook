@@ -9,12 +9,16 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 
+using namespace boost::system;
+using namespace boost::asio;
+using namespace boost::asio::ip;
+
 int main() {
 	// Local variables
 	const char* CHAT_PORT = "50013"; // Port for app communication
-	std::string inputIP; // Input for the server's IP address
+	std::string input_IP; // Input for the server's IP address
 
-						 // Opening screen
+	// Opening screen
 	std::cout << "\t\tAirwave Phonebook: The remote phonebook\n";
 	std::cout << "\nWelcome to the Airwave Phonebook, your digital remote phone directory. This application ";
 	std::cout << "allows you to remotely store and manage your contacts, whether they are business or personal.\n";
@@ -28,21 +32,23 @@ int main() {
 	system("pause");
 	system("cls");
 
+	// Try/catch for catching network errors
 	try {
 		// Get the server's IP address of hostname from the user
 		std::cout << "Please enter a Server Address: ";
-		std::getline(std::cin, inputIP);
+		std::getline(std::cin, input_IP);
 
 		// Setup a network connection to the server
-		boost::asio::io_service ioservice;
-		boost::asio::ip::tcp::resolver resolver(ioservice);
-		boost::asio::ip::tcp::resolver::query query(inputIP, CHAT_PORT);
-		boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-		boost::asio::ip::tcp::resolver::iterator end;
+		io_service ioservice;
+		tcp::resolver resolver(ioservice);
+		tcp::resolver::query query(input_IP, CHAT_PORT);
+		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+		tcp::resolver::iterator end;
 
-		boost::asio::ip::tcp::socket socket(ioservice);
-		boost::system::error_code error = boost::asio::error::host_not_found;
+		tcp::socket socket(ioservice);
+		error_code error = error::host_not_found;
 
+		// Look for the host connection
 		while (error && (endpoint_iterator != end)) {
 			socket.close();
 			socket.connect(*endpoint_iterator++, error);
@@ -55,31 +61,32 @@ int main() {
 		system("pause");
 		system("cls");
 
+		// While loop for connection to the server
 		for (;;) {
+			// Read in data from the server
 			boost::array<char, 4096> buf;
 			size_t len = socket.read_some(boost::asio::buffer(buf), error);
 
-			if (error == boost::asio::error::eof)
+			if (error == error::eof)
 				break;
 			else if (error)
-				throw boost::system::system_error(error);
+				throw system_error(error);
 
 			std::cout.write(buf.data(), len);
 
+			// Send data to the server
 			std::string message;
 			std::getline(std::cin, message);
 
-			while (message.empty()) {
-				std::cout << "\nYou cannot enter an empty value.\n";
-				std::getline(std::cin, message);
-			}
+			message = "$" + message; // Added an extra $ because sending an empty string to the server broke the program
 
-			boost::asio::write(socket, boost::asio::buffer(message));
+			write(socket, buffer(message));
 			system("pause");
 			system("cls");
 		}
 	}
 	catch (std::exception& e) {
+		// Catch errors
 		std::cerr << "Exception: " << e.what() << std::endl;
 	}
 
