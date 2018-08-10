@@ -6,156 +6,192 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <regex>
+#include <algorithm>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include "directory.h"
 #include "contacts.h"
 
-namespace {
-	// Create a variable for the main menu of the program
-	const std::string MENU = "\t\tSERVER MESSAGE\n\nThe following is the menu for the Airwave Phonebook application. Enter these values to perform the associated actions:\n\t1) Enter a new contact\n\t2) Search for a particular contact\n\t3) Sort the contact list\n\t4) View the phonebook\n\t5) Close the connection\n\n";
-}
+using namespace boost::system;
+using namespace boost::asio;
+using namespace boost::asio::ip;
 
 // Function prototypes
-std::string readRemoteInput(boost::asio::ip::tcp::socket& connection, boost::system::error_code& error); // Function for reading user input from a remote computer
-void viewPhoneBook(boost::asio::ip::tcp::socket& connection, boost::system::error_code& error, Directory* list); // Function to view the phonebook
+std::string read_remote_input(tcp::socket& connection, error_code& error); // Function for reading user input from a remote computer
+void view_phone_book(tcp::socket& connection, error_code& error, Directory* list); // Function to view the phonebook
+bool is_phone_number(std::string number); // Function to check the validity of an entered phone number
 
 int main() {
 	// Local variables
 	const int CHAT_PORT = 50013; // Port for app communication
-	std::string clientMsg; // Variable for storing messages from the client
+	int client_message; // Variable for storing messages from the client
 	Directory phonebook; // Phonebook for storing contact information
 
+	// Enum for checking menu values
+	enum MENU { 
+		NEW_CONTACT, 
+		SEARCH_CONTACTS,
+		SORT_CONTACTS,
+		VIEW_CONTACTS,
+		CLOSE_CONNECTION
+	};
+
+	// Try-catch for networking aspects of the code
 	try {
 		// Setup a connection to a client
-		boost::asio::io_service ioservice;
-		boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), CHAT_PORT);
-		boost::asio::ip::tcp::acceptor acceptor(ioservice, endpoint);
-		boost::asio::ip::tcp::socket socket(ioservice);
+		io_service ioservice;
+		tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), CHAT_PORT);
+		tcp::acceptor acceptor(ioservice, endpoint);
+		tcp::socket socket(ioservice);
 
 		std::cout << "\nServer is ready...\n";
 
-		boost::system::error_code error = boost::asio::error::host_not_found;
+		error_code error = boost::asio::error::host_not_found;
 
 		acceptor.accept(socket);
 
+		// While loop for sending and receiving data from the client
 		for (;;) {
 			// Print out the menu and the user to enter something
-			boost::asio::write(socket, boost::asio::buffer("\n"));
-			boost::asio::write(socket, boost::asio::buffer(MENU));
-			boost::asio::write(socket, boost::asio::buffer("Please enter a value from the menu:\n"));
+			write(socket, buffer("\n"));
+			write(socket, buffer("\t\tSERVER MESSAGE\n"));
+			write(socket, buffer("\nThe following is the menu for the Airwave Phonebook application. "));
+			write(socket, buffer("Enter these values to perform the associated actions:\n"));
+			write(socket, buffer("\t1) Enter a new contact\n"));
+			write(socket, buffer("\t2) Search for a particular contact\n"));
+			write(socket, buffer("\t3) Sort the contact list\n"));
+			write(socket, buffer("\t4) View the phonebook\n"));
+			write(socket, buffer("\t5) Close the connection\n"));
 
-			// Read the user's input
-			clientMsg = readRemoteInput(socket, error);
+			write(socket, buffer("\nPlease enter a value from the menu:\n"));
+
+			// Read the user's input (subtract 1 to fit in with the MENU enumerator
+			client_message = stoi(read_remote_input(socket, error)) - 1;
 
 			// Check what the user had inputted
-			if (clientMsg == "1") {
-				std::string contactType;
-				std::string contactName;
-				std::string contactNumber;
-				std::string contactInfo;
+			switch (client_message) {
+				// Create a new contact
+			case MENU::NEW_CONTACT: 
+			{
+				// Local data
+				std::string contact_type;
+				std::string contact_name;
+				std::string contact_number;
+				std::string contact_info;
 
-				boost::asio::write(socket, boost::asio::buffer("\nPlease enter what type of contact you would like to add (business/personal):\n"));
-				contactType = readRemoteInput(socket, error);
+				write(socket, buffer("\nPlease enter what type of contact you would like to add (business/personal):\n"));
+				contact_type = read_remote_input(socket, error);
 
-				if ((contactType == "business" || contactType == "Business") || (contactType == "personal" || contactType == "Personal")) {
-					boost::asio::write(socket, boost::asio::buffer("\nPlease enter the name of the contact:\n"));
-					contactName = readRemoteInput(socket, error);
+				// Add the new contact if the contact type is business or personal
+				if (contact_type == "BUSINESS" || contact_type == "PERSONAL") {
+					write(socket, buffer("\nPlease enter the name of the contact:\n"));
+					contact_name = read_remote_input(socket, error);
 
-					boost::asio::write(socket, boost::asio::buffer("\nPlease enter the contact\'s number:\n"));
-					contactNumber = readRemoteInput(socket, error);
+					write(socket, buffer("\nPlease enter the contact\'s number:\n"));
+					contact_number = read_remote_input(socket, error);
 
-					boost::asio::write(socket, boost::asio::buffer("\nPlease enter additional information (nickname for personal contact, company name for business):\n"));
-					contactInfo = readRemoteInput(socket, error);
+					// Make sure the user enters the phone number in a valid format
+					while (!is_phone_number(contact_number)) {
+						write(socket, buffer("\nThat is not a valid phone number.\n"));
+						write(socket, buffer("\nPlease enter the contact\'s number:\n"));
+						contact_number = read_remote_input(socket, error);
+					}
 
-					phonebook.add_contact(contactType, contactName, contactNumber, contactInfo);
+					write(socket, buffer("\nPlease enter additional information (nickname for personal contact, company name for business):\n"));
+					contact_info = read_remote_input(socket, error);
+
+					phonebook.add_contact(contact_type, contact_name, contact_number, contact_info);
 				}
 				else
-					boost::asio::write(socket, boost::asio::buffer("\nThat is not a valid contact type.\n"));
+					write(socket, buffer("\nThat is not a valid contact type.\n"));
+				break;
 			}
-			else if (clientMsg == "2") {
-				std::string contactType;
-				std::string searchTerm;
+				// Search for a particular contact
+			case MENU::SEARCH_CONTACTS:
+			{
+				// Local variables
+				std::string contact_type;
+				std::string search_term;
+				Contact* found_contact = nullptr;
 
-				boost::asio::write(socket, boost::asio::buffer("\nPlease enter what type of contact you would like to search for (business/personal):\n"));
-				contactType = readRemoteInput(socket, error);
+				write(socket, buffer("\nPlease enter what type of contact you would like to search for (business/personal):\n"));
+				contact_type = read_remote_input(socket, error);
 
-				if (contactType == "business" || contactType == "Business") {
-					boost::asio::write(socket, boost::asio::buffer("\nPlease enter a search term (e.g. name, phone number, or nickname/company):\n"));
-					searchTerm = readRemoteInput(socket, error);
+				// Only search for data if the contact type is business or personal
+				if (contact_type == "BUSINESS" || contact_type == "PERSONAL") {
+					write(socket, buffer("\nPlease enter a search term (e.g. name, phone number, or nickname/company):\n"));
+					search_term = read_remote_input(socket, error);
 
-					Business* foundContact;
+					// Get the pointer to the particular contact
+					found_contact = phonebook.search_for_business_contact(search_term);
 
-					foundContact = phonebook.search_for_business_contact(searchTerm);
-
-					if (foundContact == nullptr) {
-						boost::asio::write(socket, boost::asio::buffer("\nContact not found.\n"));
+					if (found_contact == nullptr) {
+						// If pointer is null, contact is not found
+						write(socket, buffer("\nContact not found.\n"));
 					}
 					else {
-						boost::asio::write(socket, boost::asio::buffer("\nContact Name:\n"));
-						boost::asio::write(socket, boost::asio::buffer(foundContact->get_name()));
-						boost::asio::write(socket, boost::asio::buffer("\nContact number:\n"));
-						boost::asio::write(socket, boost::asio::buffer(foundContact->get_phone()));
-						boost::asio::write(socket, boost::asio::buffer("\nContact company:\n"));
-						boost::asio::write(socket, boost::asio::buffer(foundContact->get_company()));
+						// Otherwise, print out the data
+						write(socket, buffer("\nContact Name:\n"));
+						write(socket, buffer(found_contact->get_name()));
+						write(socket, buffer("\nContact number:\n"));
+						write(socket, buffer(found_contact->get_phone()));
+						write(socket, buffer("\nContact company:\n"));
+						if (contact_type == "BUSINESS")
+							// If the contact type is business, print the company
+							write(socket, buffer(((Business*)found_contact)->get_company()));
+						else if (contact_type == "PERSONAL")
+							// If the contact type is personal, print the nickname
+							write(socket, buffer(((Personal*)found_contact)->get_nickname()));
 					}
 				}
-				else if (contactType == "personal" || contactType == "Personal") {
-					boost::asio::write(socket, boost::asio::buffer("\nPlease enter a search term (e.g. name, phone number, or nickname/company):\n"));
-					searchTerm = readRemoteInput(socket, error);
-
-					Personal* foundContact;
-
-					foundContact = phonebook.search_for_personal_contact(searchTerm);
-
-					if (foundContact == nullptr) {
-						boost::asio::write(socket, boost::asio::buffer("\nContact not found.\n"));
-					}
-					else {
-						boost::asio::write(socket, boost::asio::buffer("\nContact Name:\n"));
-						boost::asio::write(socket, boost::asio::buffer(foundContact->get_name()));
-						boost::asio::write(socket, boost::asio::buffer("\nContact number:\n"));
-						boost::asio::write(socket, boost::asio::buffer(foundContact->get_phone()));
-						boost::asio::write(socket, boost::asio::buffer("\nContact company:\n"));
-						boost::asio::write(socket, boost::asio::buffer(foundContact->get_nickname()));
-					}
-				}
-				else {
-					boost::asio::write(socket, boost::asio::buffer("\nThat is not a valid contact type.\n"));
-				}
+				break;
 			}
-			else if (clientMsg == "3") {
-				if (phonebook.is_empty()) {
-					boost::asio::write(socket, boost::asio::buffer("\nCannot sort phonebook. Phonebook is empty.\n"));
-				}
-				else {
-					boost::asio::write(socket, boost::asio::buffer("\nSorting contacts...\n"));
-					phonebook.sort_phonebook_by_name();
-					boost::asio::write(socket, boost::asio::buffer("\nDone...\n"));
-				}
-			}
-			else if (clientMsg == "4") {
+				// Sort contacts
+ 			case MENU::SORT_CONTACTS:
+			{
 				if (phonebook.is_empty())
-					boost::asio::write(socket, boost::asio::buffer("\nThe phonebook is empty.\n"));
-				else
-					viewPhoneBook(socket, error, &phonebook);
+					// If the phone book is empty, cannot sort
+					write(socket, buffer("\nCannot sort phonebook. Phonebook is empty.\n"));
+				else {
+					// Otherwise, sort the phone book
+					write(socket, buffer("\nSorting contacts...\n"));
+					phonebook.sort_phonebook_by_name();
+					write(socket, buffer("\nDone...\n"));
+				}
+				break;
 			}
-			else if (clientMsg == "5") {
+				// View contacts
+			case MENU::VIEW_CONTACTS:
+			{
+				if (phonebook.is_empty())
+					// If the phone book is empty, cannot view phone book
+					write(socket, buffer("\nThe phonebook is empty.\n"));
+				else
+					// Otherwise, view the phone book
+					view_phone_book(socket, error, &phonebook);
+				break;
+			}
+				// Close the connection
+			case MENU::CLOSE_CONNECTION:
+			{
 				socket.close();
 				break;
 			}
-			else {
-				boost::asio::write(socket, boost::asio::buffer("\nThat is not a valid command\n"));
+			default:
+			{
+				// Default is that the entered data is incorrect
+				write(socket, buffer("\nThat is not a valid command\n"));
+				break;
 			}
-			boost::asio::write(socket, boost::asio::buffer("\nPlease type CONTINUE to continue:\n"));
-			clientMsg = readRemoteInput(socket, error);
-
-			if (clientMsg == "CONTINUE") {
-				continue;
-			}
+			} // switch (clientMsg)
+			// Continue the program (for display formatting)
+			write(socket, buffer("\nPress any key to continue..."));
+			read_remote_input(socket, error);
 		}
 	}
 	catch (std::exception& e) {
+		// Catch all exceptions
 		std::cerr << "\nException: " << e.what() << std::endl;
 	}
 
@@ -164,64 +200,60 @@ int main() {
 	return 0;
 }
 
-std::string readRemoteInput(boost::asio::ip::tcp::socket& connection, boost::system::error_code& error) {
-	boost::array<char, 40> message;
-	std::string returnMsg;
-	size_t length;
+// Function for reading in data from the client (accepts parameters for TCP/IP socket and an error code)
+std::string read_remote_input(tcp::socket& connection, error_code& error) {
+	// Local variables
+	boost::array<char, 40> message; // Buffer for the message
+	std::string return_message; // String message to return
+	size_t length = connection.read_some(buffer(message), error); // Length of data received
 
-	for (;;) {
-		length = connection.read_some(boost::asio::buffer(message), error);
+	std::cout << "\nMessage from client: ";
+	std::cout.write(message.data(), length);
 
-		if (error == boost::asio::error::eof)
-			break;
-		else if (error)
-			throw boost::system::system_error(error);
+	// Add the characters in the buffer to the string
+	for (unsigned int i = 1; i < length; i++)
+		return_message += message[i];
 
-		std::cout << "\nMessage from client: ";
-		std::cout.write(message.data(), length);
-		break;
-	}
+	// Capaitalize all characters in the string
+	std::transform(return_message.begin(), return_message.end(), return_message.begin(), ::toupper);
 
-	for (unsigned int i = 0; i < length; i++)
-		returnMsg += message[i];
-
-	return returnMsg;
+	return return_message;
 }
 
-void viewPhoneBook(boost::asio::ip::tcp::socket& connection, boost::system::error_code& error, Directory* list) {
-	std::string userChoice;
-	boost::asio::write(connection, boost::asio::buffer("What type of contact list would you like to view (business/personal): "));
-	userChoice = readRemoteInput(connection, error);
+// Function for viewing the phone book (accepts parameters for TCP/IP socket, an error code, and a pointer to a	Directory object)
+void view_phone_book(tcp::socket& connection, error_code& error, Directory* list) {
+	// Local variables
+	write(connection, buffer("What type of contact list would you like to view (business/personal): "));
+	std::string user_choice = read_remote_input(connection, error); // Variable for the type of contact
+	std::vector<Contact*>* display_list = nullptr; // Pointer to vector of Contact object pointers
 
-	if (userChoice == "business" || userChoice == "Business") {
-		std::vector<Business*>* displayList = list->return_business_contact_book();
+	if (user_choice == "BUSINESS")
+		// If user selects business, return a business Contact list
+		display_list = (std::vector<Contact*>*)list->return_business_contact_book();
+	else if (user_choice == "PERSONAL")
+		// If user selects personal, return personal Contact list
+		display_list = (std::vector<Contact*>*)list->return_personal_contact_book();
 
-		for (unsigned int i = 0; i < displayList->size(); i++) {
-			Business* contactElement = displayList->at(i);
-			boost::asio::write(connection, boost::asio::buffer("\nContact Name:\n"));
-			boost::asio::write(connection, boost::asio::buffer(contactElement->get_name()));
-			boost::asio::write(connection, boost::asio::buffer("\nContact Number:\n"));
-			boost::asio::write(connection, boost::asio::buffer(contactElement->get_phone()));
-			boost::asio::write(connection, boost::asio::buffer("\nContact Workplace:\n"));
-			boost::asio::write(connection, boost::asio::buffer(contactElement->get_company()));
-			boost::asio::write(connection, boost::asio::buffer("\n"));
-		}
+	// Display the data for the phone book
+	for (unsigned int i = 0; i < display_list->size(); i++) {
+		Contact* contact_element = display_list->at(i);
+		write(connection, buffer("\nContact Name:\n"));
+		write(connection, buffer(contact_element->get_name()));
+		write(connection, buffer("\nContact Number:\n"));
+		write(connection, buffer(contact_element->get_phone()));
+		write(connection, buffer("\nContact Info:\n"));
+		// Display contact-type depedentant information
+		if (user_choice == "BUSINESS")
+			write(connection, buffer(((Business*)contact_element)->get_company()));
+		else if (user_choice == "PERSONAL")
+			write(connection, buffer(((Personal*)contact_element)->get_nickname()));
+		write(connection, buffer("\n"));
 	}
-	else if (userChoice == "personal" || userChoice == "Personal") {
-		std::vector<Personal*>* displayList = list->return_personal_contact_book();
+}
 
-		for (unsigned int i = 0; i < displayList->size(); i++) {
-			Personal* contactElement = displayList->at(i);
-			boost::asio::write(connection, boost::asio::buffer("\nContact Name:\n"));
-			boost::asio::write(connection, boost::asio::buffer(contactElement->get_name()));
-			boost::asio::write(connection, boost::asio::buffer("\nContact Number:\n"));
-			boost::asio::write(connection, boost::asio::buffer(contactElement->get_phone()));
-			boost::asio::write(connection, boost::asio::buffer("\nContact Workplace:\n"));
-			boost::asio::write(connection, boost::asio::buffer(contactElement->get_nickname()));
-			boost::asio::write(connection, boost::asio::buffer("\n"));
-		}
-	}
-	else {
-		boost::asio::write(connection, boost::asio::buffer("\nThat is not a valid option.\n"));
-	}
+// Function to check for a valid phone number
+bool is_phone_number(std::string number) {
+	std::regex phone("[[:digit:]]{3}-[[:digit:]]{3}-[[:digit:]]{4}");
+
+	return (std::regex_match(number, phone));
 }

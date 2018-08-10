@@ -1,97 +1,100 @@
-// directory.cpp
-// This file defines the directory class 
+// This is the file for defining the functions in the Directory class
+//
+// Authors: William Bryant and Brandon Michelsen
 
 #include <iostream>
 #include <vector>
-#include <set>
-#include <algorithm>
 #include "directory.h"
 #include "contacts.h"
 
 // Function takes in users contact choice with contact details 
 void Directory::add_contact(std::string choice, std::string name, std::string number, std::string additionalInfo) {
-	if (choice == "business" || choice == "Business") {
+	if (choice == "BUSINESS") {
+		// If the user chooses business, add a new business contact
 
-		// create a new object
+		// Create a new Business object
 		Business* new_contact = new Business;
 
-		// store contact details 
+		// Store contact details 
 		new_contact->set_name(name);
 		new_contact->set_phone(number);
 		new_contact->set_company(additionalInfo);
 
-		// push in vector
+		// Push in vector
 		business_contact_book.push_back(new_contact);
 	}
-	else if (choice == "personal" || choice == "Personal") {
+	else if (choice == "PERSONAL") {
+		// Otherwise, add a new Personal contact
 
+		// Create a new Personal contact
 		Personal* new_contact = new Personal;
 
+		// Add contact info
 		new_contact->set_name(name);
 		new_contact->set_phone(number);
 		new_contact->set_nickname(additionalInfo);
-
+		
+		// Push into vector
 		personal_contact_book.push_back(new_contact);
 	}
 }
 
-// Function takes in an input from user to search for a personal contact
+// Function takes in an input from user to search for a personal contact (returns a pointer to the found object, null ptr otherwise)
 Personal* Directory::search_for_personal_contact(std::string input) {
 	if (personal_contact_book.empty())
+		// If the contact book is empty, return null ptr
 		return  nullptr;
 	else {
-		// if contact book is not empty, compare input to contact detials
+		// If contact book is not empty, compare input to contact details
 		for (unsigned int i = 0; i < personal_contact_book.size(); i++) {
 			std::string name = personal_contact_book[i]->get_name();
 			std::string number = personal_contact_book[i]->get_phone();
 			std::string nickname = personal_contact_book[i]->get_nickname();
 
-			std::transform(name.begin(), name.end(), name.begin(), ::toupper);
-			std::transform(number.begin(), number.end(), number.begin(), ::toupper);
-			std::transform(nickname.begin(), nickname.end(), nickname.begin(), ::toupper);
-			std::transform(input.begin(), input.end(), input.begin(), ::toupper);
-
 			if ((name == input) || (number == input) || (nickname == input))
 				return personal_contact_book[i];
 		}
-		// if reches here, contact was not found
+		// If no contact is found, return null ptr
 		return nullptr;
 	}
 }
 
-// Function takes in an input from user to search for a business contact
+// Function takes in an input from user to search for a business contact (returns pointer to found object, null ptr otherwise)
 Business* Directory::search_for_business_contact(std::string input) {
 	if (business_contact_book.empty())
+		// If phone book is empty, return a null ptr
 		return  nullptr;
 	else {
+		// If contact book is not empty, search for contact based on user input
 		for (unsigned int i = 0; i < business_contact_book.size(); i++) {
 			std::string name = business_contact_book[i]->get_name();
 			std::string number = business_contact_book[i]->get_phone();
 			std::string company = business_contact_book[i]->get_company();
 
-			std::transform(name.begin(), name.end(), name.begin(), ::toupper);
-			std::transform(number.begin(), number.end(), number.begin(), ::toupper);
-			std::transform(company.begin(), company.end(), company.begin(), ::toupper);
-			std::transform(input.begin(), input.end(), input.begin(), ::toupper);
-
 			if ((name == input) || (number == input) || (company == input))
 				return business_contact_book[i];
 		}
+		// If the contact was not found, return null ptr
 		return nullptr;
 	}
 }
 
-
+// Function for sorting the personal contact book
 void Directory::personal_sort_by_name() {
 	// Variable for storing temporary contacts
 	Personal* temp = nullptr;
+
 	if (personal_contact_book.empty())
+		// If the contact book is empty, cannot sort
 		std::cout << "Personal Book is empty!";
 	else {
-		// Sort the string in alphebatical order
-		bool swapped = true;
-		int j = 0;
+		// Otherwise, sort based on Bubble Sort
 
+		// Sort the string in alphebatical order
+		bool swapped = true; // Variable for checking is data is swapped
+		int j = 0; // Variable for tracking how many iterations of the loop
+
+		// Continue sorting the data until the data is in alhpabetical order
 		while (swapped) {
 			swapped = false;
 			j++;
@@ -99,9 +102,11 @@ void Directory::personal_sort_by_name() {
 				std::string contact1 = personal_contact_book[i]->get_name();
 				std::string contact2 = personal_contact_book[i + 1]->get_name();
 				if (contact1 > contact2) {
+					// If the the current element is alphabetically greater than the next, swap them
 					temp = personal_contact_book[i];
 					personal_contact_book[i] = personal_contact_book[i + 1];
 					personal_contact_book[i + 1] = temp;
+					// Update the swapped value to true (since we swapped the data)
 					swapped = true;
 				}
 			}
@@ -109,16 +114,23 @@ void Directory::personal_sort_by_name() {
 	}
 }
 
+// Function for sorting the business contact book
 void Directory::business_sort_by_name() {
 	// Variable for storing temporary contacts
 	Business* temp = nullptr;
+
+
 	if (business_contact_book.empty())
+		// If the contact book is empty, cannot sort
 		std::cout << "\nBusiness Book is empty!\n";
 	else {
+		// Otherwise, sort the string based on Bubble Sort
+
 		// Sort the string in alphebatical order
-		bool swapped = true;
-		int j = 0;
-		
+		bool swapped = true; // Variable for checking if the data is swapped
+		int j = 0; // Variable for tracking iterations of the loop
+
+		// Continue sorting until the data is in alphabetical order
 		while (swapped) {
 			swapped = false;
 			j++;
@@ -126,9 +138,11 @@ void Directory::business_sort_by_name() {
 				std::string contact1 = business_contact_book[i]->get_name();
 				std::string contact2 = business_contact_book[i + 1]->get_name();
 				if (contact1 > contact2) {
+					// If the current element is alphabetically greater than the next, swap them
 					temp = business_contact_book[i];
 					business_contact_book[i] = business_contact_book[i + 1];
 					business_contact_book[i + 1] = temp;
+					// Update the swapped value
 					swapped = true;
 				}
 			}
@@ -136,12 +150,11 @@ void Directory::business_sort_by_name() {
 	}
 }
 
+// Function for calling the sorting methods on each contact book
 void Directory::sort_phonebook_by_name() {
 	// Call the sort methods
-	if (!(business_contact_book.empty()))
-		business_sort_by_name();
-	if (!(personal_contact_book.empty()))
-		personal_sort_by_name();
+	business_sort_by_name();
+	personal_sort_by_name();
 }
 
 // Function returns personal contact book in vector for display
@@ -154,7 +167,7 @@ std::vector<Business*>* Directory::return_business_contact_book() {
 	return &(business_contact_book);
 }
 
-// 
+// Function returns if the contact book is empty or not
 bool Directory::is_empty() {
 	return (business_contact_book.empty() && personal_contact_book.empty());
 }

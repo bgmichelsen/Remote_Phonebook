@@ -1,4 +1,7 @@
-﻿  directory.cpp
-c:\users\bramiche\source\repos\messaging_app_server\messaging_app_server\directory.cpp(98): warning C4018: '<': signed/unsigned mismatch
-c:\users\bramiche\source\repos\messaging_app_server\messaging_app_server\directory.cpp(125): warning C4018: '<': signed/unsigned mismatch
+﻿  ChatServer.cpp
+  Unknown compiler version - please run the configure tests and report the results
+  Please define _WIN32_WINNT or _WIN32_WINDOWS appropriately. For example:
+  - add -D_WIN32_WINNT=0x0501 to the compiler command line; or
+  - add _WIN32_WINNT=0x0501 to your project's Preprocessor Definitions.
+  Assuming _WIN32_WINNT=0x0501 (i.e. Windows XP target).
   Messaging_App_Server.vcxproj -> C:\Users\bramiche\source\repos\Messaging_App_Server\Debug\Messaging_App_Server.exe
