@@ -18,13 +18,15 @@ int main() {
 	const char* CHAT_PORT = "50013"; // Port for app communication
 	std::string input_IP; // Input for the server's IP address
 
-						  // Opening screen
+	// Opening screen
 	std::cout << "\t\tAirwave Phonebook: The remote phonebook\n";
 	std::cout << "\nWelcome to the Airwave Phonebook, your digital remote phone directory. This application ";
 	std::cout << "allows you to remotely store and manage your contacts, whether they are business or personal.\n";
 	std::cout << "To use this application, you first need to connect to an external server running the directory ";
 	std::cout << "management application. After establishing a connection, you can then use the app to add contacts, ";
 	std::cout << "search for information about a particular contact, or even sort the phone directory.\n";
+	std::cout << "The server will provide you with a menu that allows you to choose various actions you ";
+	std::cout << "may want to perform. The actions are presented as options in the form of numbers.\n";
 	std::cout << "The phonebook includes several aspects of a contact. For a personal contact, it stores the ";
 	std::cout << "name of the contact, the phonenumber of the contact, and a nickname for the contact. ";
 	std::cout << "For a business contact, it stores the contact\'s name, number, and the business they work at.\n\n";
