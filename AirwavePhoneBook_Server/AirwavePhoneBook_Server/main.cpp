@@ -91,7 +91,7 @@ int main() {
 					write(socket, buffer("\nPlease enter the name of the contact:\n"));
 					contact_name = read_remote_input(socket, error);
 
-					write(socket, buffer("\nPlease enter the contact\'s number:\n"));
+					write(socket, buffer("\nPlease enter the contact\'s number (in the format NNN-NNN-NNNN where N is a number):\n"));
 					contact_number = read_remote_input(socket, error);
 
 					// Make sure the user enters the phone number in a valid format

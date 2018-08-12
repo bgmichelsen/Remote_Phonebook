@@ -1,11 +1,7 @@
-﻿  directory.cpp
-c:\users\bramiche\source\repos\airwavephonebook_server\airwavephonebook_server\directory.cpp(120): warning C4018: '<': signed/unsigned mismatch
-c:\users\bramiche\source\repos\airwavephonebook_server\airwavephonebook_server\directory.cpp(156): warning C4018: '<': signed/unsigned mismatch
-  main.cpp
+﻿  main.cpp
   Unknown compiler version - please run the configure tests and report the results
   Please define _WIN32_WINNT or _WIN32_WINDOWS appropriately. For example:
   - add -D_WIN32_WINNT=0x0501 to the compiler command line; or
   - add _WIN32_WINNT=0x0501 to your project's Preprocessor Definitions.
   Assuming _WIN32_WINNT=0x0501 (i.e. Windows XP target).
-  Generating Code...
   AirwavePhoneBook_Server.vcxproj -> C:\Users\bramiche\source\repos\AirwavePhoneBook_Server\Debug\AirwavePhoneBook_Server.exe
