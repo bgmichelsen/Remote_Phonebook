@@ -249,7 +249,8 @@ std::string read_remote_input(tcp::socket& connection, error_code& error) {
 	std::cout << "\nMessage from client: ";
 	std::cout.write(message.data(), length);
 
-	// Add the characters in the buffer to the string
+	// Add the characters in the buffer to the string 
+	// Starting from 1 to get rid of dollar
 	for (unsigned int i = 1; i < length; i++)
 		return_message += message[i];
 
