@@ -28,7 +28,7 @@ int main() {
 	int client_message; // Variable for storing messages from the client
 	Directory phonebook; // Phonebook for storing contact information
 
-						 // Enum for checking menu values
+	// Enum for checking menu values
 	enum MENU {
 		NEW_CONTACT,
 		SEARCH_CONTACTS,
